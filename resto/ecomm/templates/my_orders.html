@@ -1,0 +1,356 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mes commandes - Savoureux{% endblock %}
+
+{% block content %}
+<style>
+    .orders-container {
+        max-width: 800px;
+        margin: 60px auto;
+        padding: 2rem;
+    }
+
+    .page-title {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: #333;
+    }
+
+    .order-card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+
+    .order-header {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .order-id {
+        font-weight: 500;
+        color: #333;
+    }
+
+    .order-date {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .order-body {
+        padding: 1rem;
+    }
+
+    .order-items {
+        margin-bottom: 1rem;
+    }
+
+    .order-item {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .order-item:last-child {
+        border-bottom: none;
+    }
+
+    .item-image {
+        width: 50px;
+        height: 50px;
+        border-radius: 4px;
+        object-fit: cover;
+        margin-right: 1rem;
+    }
+
+    .item-details {
+        flex: 1;
+    }
+
+    .item-name {
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 0.25rem;
+    }
+
+    .item-price {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .order-footer {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-top: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .order-total {
+        font-weight: 500;
+        color: #333;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-confirmed {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-preparing {
+        background: #cce5ff;
+        color: #004085;
+    }
+
+    .status-delivering {
+        background: #e2e3e5;
+        color: #383d41;
+    }
+
+    .status-delivered {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-cancelled {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .order-progress {
+        margin: 1rem 0;
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .progress-step {
+        flex: 1;
+        text-align: center;
+        position: relative;
+    }
+
+    .progress-step::before {
+        content: '';
+        position: absolute;
+        top: 15px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #ddd;
+        z-index: 1;
+    }
+
+    .progress-step:first-child::before {
+        left: 50%;
+    }
+
+    .progress-step:last-child::before {
+        right: 50%;
+    }
+
+    .progress-marker {
+        width: 30px;
+        height: 30px;
+        background: #fff;
+        border: 2px solid #ddd;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 2;
+        margin-bottom: 0.5rem;
+    }
+
+    .progress-marker i {
+        color: #ddd;
+    }
+
+    .progress-text {
+        font-size: 0.8rem;
+        color: #666;
+    }
+
+    .progress-step.active .progress-marker {
+        border-color: #1976d2;
+        background: #1976d2;
+    }
+
+    .progress-step.active .progress-marker i {
+        color: white;
+    }
+
+    .progress-step.active .progress-text {
+        color: #1976d2;
+        font-weight: 500;
+    }
+
+    .progress-step.completed::before {
+        background: #1976d2;
+    }
+
+    .progress-step.completed .progress-marker {
+        border-color: #1976d2;
+        background: #1976d2;
+    }
+
+    .progress-step.completed .progress-marker i {
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: #ccc;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state p {
+        color: #666;
+        margin-bottom: 1.5rem;
+    }
+
+    .btn-menu {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        background: #1976d2;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        transition: background 0.2s;
+    }
+
+    .btn-menu:hover {
+        background: #1565c0;
+        color: white;
+    }
+
+    @media (max-width: 480px) {
+        .orders-container {
+            margin: 20px auto;
+            padding: 1rem;
+        }
+
+        .progress-text {
+            display: none;
+        }
+    }
+</style>
+
+<div class="orders-container">
+    <h1 class="page-title">Mes commandes</h1>
+
+    {% if orders %}
+        {% for order in orders %}
+        <div class="order-card">
+            <div class="order-header">
+                <span class="order-id">Commande #{{ order.id }}</span>
+                <span class="order-date">{{ order.created_at|date:"d/m/Y H:i" }}</span>
+            </div>
+
+            <div class="order-body">
+                <div class="order-progress">
+                    <div class="progress-step {% if order.status in 'pending,confirmed,preparing,delivering,delivered' %}completed{% endif %} {% if order.status == 'pending' %}active{% endif %}">
+                        <div class="progress-marker">
+                            <i class='bx bx-receipt'></i>
+                        </div>
+                        <div class="progress-text">Commande reçue</div>
+                    </div>
+                    <div class="progress-step {% if order.status in 'confirmed,preparing,delivering,delivered' %}completed{% endif %} {% if order.status == 'confirmed' %}active{% endif %}">
+                        <div class="progress-marker">
+                            <i class='bx bx-check'></i>
+                        </div>
+                        <div class="progress-text">Confirmée</div>
+                    </div>
+                    <div class="progress-step {% if order.status in 'preparing,delivering,delivered' %}completed{% endif %} {% if order.status == 'preparing' %}active{% endif %}">
+                        <div class="progress-marker">
+                            <i class='bx bx-dish'></i>
+                        </div>
+                        <div class="progress-text">En préparation</div>
+                    </div>
+                    <div class="progress-step {% if order.status in 'delivering,delivered' %}completed{% endif %} {% if order.status == 'delivering' %}active{% endif %}">
+                        <div class="progress-marker">
+                            <i class='bx bx-car'></i>
+                        </div>
+                        <div class="progress-text">En livraison</div>
+                    </div>
+                    <div class="progress-step {% if order.status == 'delivered' %}completed active{% endif %}">
+                        <div class="progress-marker">
+                            <i class='bx bx-package'></i>
+                        </div>
+                        <div class="progress-text">Livrée</div>
+                    </div>
+                </div>
+
+                <div class="order-items">
+                    {% for item in order.orderitem_set.all %}
+                    <div class="order-item">
+                        {% if item.menu_item.image %}
+                            <img src="{{ item.menu_item.image.url }}" alt="{{ item.menu_item.name }}" class="item-image">
+                        {% else %}
+                            <div class="item-image d-flex align-items-center justify-content-center bg-secondary text-white rounded">
+                                <i class='bx bx-image'></i>
+                            </div>
+                        {% endif %}
+                        <div class="item-details">
+                            <div class="item-name">{{ item.menu_item.name }}</div>
+                            <div class="item-price">{{ item.price }} F CFA × {{ item.quantity }}</div>
+                        </div>
+                        <div class="item-total">
+                            {{ item.get_total }} F CFA
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="order-footer">
+                <div class="order-total">
+                    Total : {{ order.total_amount }} F CFA
+                </div>
+                <div class="order-status">
+                    <span class="status-badge status-{{ order.status }}">
+                        {{ order.get_status_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <i class='bx bx-package'></i>
+            <p>Vous n'avez pas encore passé de commande</p>
+            <a href="{% url 'menu' %}" class="btn-menu">
+                <i class='bx bx-food-menu'></i>
+                Voir le menu
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 

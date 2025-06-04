@@ -1,0 +1,543 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Menu - Savoureux{% endblock %}
+
+{% block content %}
+<style>
+    .menu__filters {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: var(--container-color);
+        border-radius: 1rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+    }
+
+    .menu__filters:hover {
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    .menu__filters-group {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+        align-items: end;
+    }
+
+    .menu__filter-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .menu__filter-label {
+        font-size: var(--small-font-size);
+        color: var(--text-color);
+        font-weight: 500;
+        margin-bottom: -0.25rem;
+    }
+
+    .menu__filter-select,
+    .menu__filter-input {
+        padding: 0.75rem 1rem;
+        border: 2px solid transparent;
+        border-radius: 0.75rem;
+        font-size: var(--normal-font-size);
+        color: var(--text-color);
+        background: var(--body-color);
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .menu__filter-select:hover,
+    .menu__filter-input:hover {
+        border-color: var(--first-color-light);
+    }
+
+    .menu__filter-select:focus,
+    .menu__filter-input:focus {
+        border-color: var(--first-color);
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(var(--first-color-rgb), 0.1);
+    }
+
+    .menu__filter-button {
+        background-color: var(--first-color);
+        color: #fff;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.75rem;
+        font-size: var(--normal-font-size);
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        height: 100%;
+        min-height: 2.75rem;
+    }
+
+    .menu__filter-button:hover {
+        background-color: var(--first-color-alt);
+        transform: translateY(-2px);
+    }
+
+    .menu__filter-button:active {
+        transform: translateY(0);
+    }
+
+    .menu__filter-button i {
+        font-size: 1.25rem;
+    }
+
+    .menu__container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2rem;
+        padding: 2rem 0;
+    }
+
+    .menu__content {
+        position: relative;
+        background: var(--container-color);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12),
+                   0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        border: 1px solid rgba(var(--first-color-rgb), 0.05);
+    }
+
+    .menu__content:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15),
+                   0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .menu__content {
+            background: var(--container-color-dark, #2a2b2e);
+            border-color: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3),
+                       0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .menu__content:hover {
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4),
+                       0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .menu__name {
+            color: var(--title-color-dark, #fff);
+        }
+
+        .menu__detail {
+            color: var(--text-color-light-dark, #a0a0a0);
+        }
+
+        .menu__preci {
+            color: var(--first-color-light);
+        }
+    }
+
+    .menu__img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 0.75rem;
+        margin-bottom: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .menu__name {
+        font-size: var(--h3-font-size);
+        color: var(--title-color);
+        margin-bottom: 0.25rem;
+        font-weight: 600;
+    }
+
+    .menu__detail {
+        display: block;
+        font-size: var(--small-font-size);
+        color: var(--text-color-light);
+        margin-bottom: 0.5rem;
+        line-height: 1.5;
+    }
+
+    .menu__price-group {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(var(--first-color-rgb), 0.08);
+    }
+
+    .menu__preci {
+        font-size: var(--h3-font-size);
+        font-weight: var(--font-semi-bold);
+        color: var(--first-color);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .menu__button {
+        padding: .75rem 1.25rem;
+        border-radius: .75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: none;
+        background-color: var(--first-color);
+        color: #fff;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(var(--first-color-rgb), 0.3);
+    }
+
+    .menu__button:hover {
+        background-color: var(--first-color-alt);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(var(--first-color-rgb), 0.4);
+    }
+
+    .menu__button:active {
+        transform: translateY(0);
+    }
+
+    .menu__button i {
+        font-size: 1.25rem;
+        transition: transform 0.3s ease;
+    }
+
+    .menu__button:hover i {
+        transform: translateX(2px);
+    }
+
+    .menu__button:focus {
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(var(--first-color-rgb), 0.15),
+                   0 4px 12px rgba(var(--first-color-rgb), 0.3);
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .menu__button {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .menu__button:hover {
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .menu__price-group {
+            border-top-color: rgba(255, 255, 255, 0.08);
+        }
+    }
+
+    .menu__button.adding {
+        pointer-events: none;
+        opacity: 0.7;
+    }
+
+    .menu__button.success {
+        background-color: var(--first-color-alt);
+    }
+
+    .notification {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        background: var(--first-color);
+        color: #fff;
+        padding: 1rem 2rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transform: translateY(150%);
+        transition: transform 0.3s ease;
+        z-index: 1000;
+    }
+
+    .notification.show {
+        transform: translateY(0);
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+    }
+
+    .pagination__link {
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        background: var(--container-color);
+        color: var(--text-color);
+        transition: all 0.3s ease;
+    }
+
+    .pagination__link:hover,
+    .pagination__link.active {
+        background: var(--first-color);
+        color: #fff;
+    }
+
+    .no-results {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-color);
+    }
+
+    @media screen and (max-width: 992px) {
+        .menu__container {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+    }
+
+    @media screen and (max-width: 576px) {
+        .menu__container {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .menu__filters-group {
+            grid-template-columns: 1fr;
+        }
+
+        .menu__filters {
+            padding: 1rem;
+        }
+    }
+</style>
+
+<section class="menu section bd-container" id="menu">
+    <h2 class="section-title">Notre Menu</h2>
+
+    <div class="menu__filters">
+        <form method="get" class="menu__filters-group">
+            <div class="menu__filter-item">
+                <label class="menu__filter-label" for="category">Catégorie</label>
+                <select name="category" id="category" class="menu__filter-select">
+                    <option value="">Toutes les catégories</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>
+                        {{ category.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="menu__filter-item">
+                <label class="menu__filter-label" for="sort">Trier par</label>
+                <select name="sort" id="sort" class="menu__filter-select">
+                    <option value="name" {% if request.GET.sort == 'name' %}selected{% endif %}>Nom (A-Z)</option>
+                    <option value="-name" {% if request.GET.sort == '-name' %}selected{% endif %}>Nom (Z-A)</option>
+                    <option value="price" {% if request.GET.sort == 'price' %}selected{% endif %}>Prix (croissant)</option>
+                    <option value="-price" {% if request.GET.sort == '-price' %}selected{% endif %}>Prix (décroissant)</option>
+                </select>
+            </div>
+
+            <div class="menu__filter-item">
+                <label class="menu__filter-label" for="search">Rechercher</label>
+                <input type="text" name="search" id="search" class="menu__filter-input" 
+                       value="{{ request.GET.search }}" placeholder="Nom ou description...">
+            </div>
+
+            <div class="menu__filter-item">
+                <button type="submit" class="menu__filter-button">
+                    <i class='bx bx-filter-alt'></i>
+                    <span>Filtrer</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="menu__container bd-grid">
+        {% for item in items %}
+        <div class="menu__content">
+            {% if item.image %}
+                <img src="{{ item.image.url }}" alt="{{ item.name }}" class="menu__img">
+            {% else %}
+                <div class="menu__img d-flex align-items-center justify-content-center bg-secondary text-white">
+                    <i class='bx bx-image'></i>
+                </div>
+            {% endif %}
+            <h3 class="menu__name">{{ item.name }}</h3>
+            <span class="menu__detail">{{ item.description }}</span>
+            <div class="menu__price-group">
+                <span class="menu__preci">{{ item.price }} F CFA</span>
+                {% if user.is_authenticated %}
+                <form method="post" action="{% url 'add_to_cart' item.id %}" class="d-inline" style="margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" class="button menu__button" data-item-id="{{ item.id }}">
+                        <i class='bx bx-cart-alt'></i>
+                        <span>Ajouter</span>
+                    </button>
+                </form>
+                {% else %}
+                <a href="{% url 'login' %}" class="button menu__button">
+                    <i class='bx bx-cart-alt'></i>
+                    <span>Ajouter</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="no-results">
+            <i class='bx bx-search-alt' style="font-size: 3rem; margin-bottom: 1rem;"></i>
+            <p>Aucun plat trouvé pour votre recherche</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if items.has_other_pages %}
+    <div class="pagination">
+        {% if items.has_previous %}
+        <a href="?page={{ items.previous_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" 
+           class="pagination__link">&laquo;</a>
+        {% endif %}
+
+        {% for num in items.paginator.page_range %}
+            {% if items.number == num %}
+            <span class="pagination__link active">{{ num }}</span>
+            {% else %}
+            <a href="?page={{ num }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" 
+               class="pagination__link">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if items.has_next %}
+        <a href="?page={{ items.next_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" 
+           class="pagination__link">&raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</section>
+
+<div class="notification" id="notification">
+    <i class='bx bx-check-circle'></i>
+    <span id="notification-message">Article ajouté au panier</span>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const forms = document.querySelectorAll('form[action^="/add-to-cart/"]');
+    const notification = document.getElementById('notification');
+    const notificationMessage = document.getElementById('notification-message');
+    const cartCount = document.querySelector('.cart-count');
+
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const button = this.querySelector('.menu__button');
+            const itemId = button.dataset.itemId;
+            
+            // Ajouter la classe pour l'animation de chargement
+            button.classList.add('adding');
+            
+            fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': this.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: new URLSearchParams(new FormData(this))
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Mettre à jour le compteur du panier
+                    if (cartCount) {
+                        cartCount.textContent = data.cart_count;
+                    }
+                    
+                    // Mettre à jour le message de notification
+                    notificationMessage.textContent = data.message;
+                    
+                    // Animation de succès
+                    button.classList.remove('adding');
+                    button.classList.add('success');
+                    
+                    // Afficher la notification
+                    notification.classList.add('show');
+                    setTimeout(() => {
+                        notification.classList.remove('show');
+                    }, 2000);
+                    
+                    // Réinitialiser le bouton après un délai
+                    setTimeout(() => {
+                        button.classList.remove('success');
+                    }, 1000);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                button.classList.remove('adding');
+                
+                // Afficher un message d'erreur
+                notificationMessage.textContent = "Une erreur est survenue";
+                notification.style.backgroundColor = 'var(--first-color-alt)';
+                notification.classList.add('show');
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    notification.style.backgroundColor = 'var(--first-color)';
+                }, 2000);
+            });
+        });
+    });
+
+    // Fonction pour mettre à jour les paramètres de l'URL
+    function updateQueryString(key, value) {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (value) {
+            urlParams.set(key, value);
+        } else {
+            urlParams.delete(key);
+        }
+        // Conserver les autres paramètres
+        const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
+        window.history.pushState({ path: newUrl }, '', newUrl);
+    }
+
+    // Gestionnaire pour le changement de catégorie
+    const categorySelect = document.getElementById('category');
+    categorySelect.addEventListener('change', function() {
+        updateQueryString('category', this.value);
+        document.querySelector('.menu__filters-group').submit();
+    });
+
+    // Gestionnaire pour le changement de tri
+    const sortSelect = document.getElementById('sort');
+    sortSelect.addEventListener('change', function() {
+        updateQueryString('sort', this.value);
+        document.querySelector('.menu__filters-group').submit();
+    });
+
+    // Gestionnaire pour la recherche (avec debounce)
+    let searchTimeout;
+    const searchInput = document.getElementById('search');
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            updateQueryString('search', this.value);
+            document.querySelector('.menu__filters-group').submit();
+        }, 500); // Délai de 500ms avant de soumettre la recherche
+    });
+
+    // Restaurer les valeurs des filtres depuis l'URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('category')) categorySelect.value = urlParams.get('category');
+    if (urlParams.has('sort')) sortSelect.value = urlParams.get('sort');
+    if (urlParams.has('search')) searchInput.value = urlParams.get('search');
+});
+</script>
+{% endblock %}

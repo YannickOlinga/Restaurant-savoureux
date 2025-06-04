@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Commander - Savoureux{% endblock %}
+
+{% block content %}
+<style>
+    .checkout-container {
+        max-width: 1000px;
+        margin: 60px auto;
+        padding: 2rem;
+    }
+
+    .checkout-grid {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 2rem;
+    }
+
+    .order-details {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        padding: 1.5rem;
+    }
+
+    .order-summary {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        padding: 1.5rem;
+        position: sticky;
+        top: 20px;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        color: #333;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #444;
+        font-weight: 500;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+        transition: border-color 0.2s;
+    }
+
+    .form-control:focus {
+        border-color: #1976d2;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+    }
+
+    .cart-items {
+        margin-bottom: 1.5rem;
+    }
+
+    .cart-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .cart-item:last-child {
+        border-bottom: none;
+    }
+
+    .item-image {
+        width: 60px;
+        height: 60px;
+        border-radius: 4px;
+        object-fit: cover;
+        margin-right: 1rem;
+    }
+
+    .item-details {
+        flex: 1;
+    }
+
+    .item-name {
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 0.25rem;
+    }
+
+    .item-price {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .item-quantity {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+        color: #666;
+    }
+
+    .summary-total {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 2px solid #eee;
+        font-weight: 600;
+        color: #333;
+        font-size: 1.1rem;
+    }
+
+    .btn-order {
+        width: 100%;
+        padding: 1rem;
+        background: #1976d2;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s;
+        margin-top: 1.5rem;
+    }
+
+    .btn-order:hover {
+        background: #1565c0;
+    }
+
+    @media (max-width: 768px) {
+        .checkout-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .checkout-container {
+            margin: 20px auto;
+            padding: 1rem;
+        }
+    }
+</style>
+
+<div class="checkout-container">
+    <div class="checkout-grid">
+        <div class="order-details">
+            <h2 class="section-title">Détails de la commande</h2>
+            <form method="post" id="orderForm">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="name">Nom complet</label>
+                    <input type="text" id="name" name="name" class="form-control" required value="{{ request.user.get_full_name }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" class="form-control" required value="{{ request.user.email }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Numéro de téléphone</label>
+                    <input type="tel" id="phone" name="phone" class="form-control" required pattern="[0-9]{10}" placeholder="0612345678">
+                </div>
+
+                <div class="form-group">
+                    <label for="address">Adresse de livraison</label>
+                    <textarea id="address" name="address" class="form-control" rows="3" required placeholder="Numéro, rue, code postal, ville"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="notes">Instructions spéciales (optionnel)</label>
+                    <textarea id="notes" name="notes" class="form-control" rows="2" placeholder="Instructions pour la livraison, allergies, etc."></textarea>
+                </div>
+            </form>
+        </div>
+
+        <div class="order-summary">
+            <h2 class="section-title">Récapitulatif</h2>
+            
+            <div class="cart-items">
+                {% for item in cart.cartitem_set.all %}
+                <div class="cart-item">
+                    {% if item.menu_item.image %}
+                        <img src="{{ item.menu_item.image.url }}" alt="{{ item.menu_item.name }}" class="item-image">
+                    {% else %}
+                        <div class="item-image d-flex align-items-center justify-content-center bg-secondary text-white rounded">
+                            <i class='bx bx-image'></i>
+                        </div>
+                    {% endif %}
+                    <div class="item-details">
+                        <div class="item-name">{{ item.menu_item.name }}</div>
+                        <div class="item-price">{{ item.menu_item.price }} F CFA × {{ item.quantity }}</div>
+                    </div>
+                    <div class="item-quantity">
+                        {{ item.get_total }} F CFA
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="order-total">
+                <div class="total-row">
+                    <span>Sous-total</span>
+                    <span>{{ cart.get_subtotal }} F CFA</span>
+                </div>
+                <div class="total-row">
+                    <span>Frais de livraison</span>
+                    <span>{{ cart.get_delivery_fee }} F CFA</span>
+                </div>
+                <div class="total-row final">
+                    <span>Total</span>
+                    <span>{{ cart.get_total }} F CFA</span>
+                </div>
+            </div>
+
+            <button type="submit" form="orderForm" class="btn-order">
+                Commander maintenant
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('orderForm');
+    
+    form.addEventListener('submit', function(e) {
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+                field.classList.add('is-invalid');
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Veuillez remplir tous les champs obligatoires');
+        }
+    });
+});
+</script>
+{% endblock %} 

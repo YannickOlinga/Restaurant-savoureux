@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Inscription - Savoureux{% endblock %}
+
+{% block content %}
+<style>
+    .container {
+        background: var(--container-color);
+        padding: 32px 24px;
+        border-radius: 1rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        width: 100%;
+        max-width: 400px;
+        margin: 60px auto;
+    }
+
+    h2 {
+        text-align: center;
+        margin-bottom: 1.5rem;
+        color: var(--title-color);
+        font-size: var(--h2-font-size);
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--text-color);
+        font-size: var(--normal-font-size);
+        font-weight: 500;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--text-color-light);
+        border-radius: 0.5rem;
+        background: var(--container-color);
+        color: var(--text-color);
+        font-size: var(--normal-font-size);
+        transition: border-color 0.3s ease;
+        box-sizing: border-box;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="password"]:focus {
+        border-color: var(--first-color);
+        outline: none;
+    }
+
+    .error {
+        color: #ff3333;
+        font-size: var(--smaller-font-size);
+        margin-top: 0.25rem;
+    }
+
+    button {
+        width: 100%;
+        padding: 12px;
+        background: var(--first-color);
+        color: #fff;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: var(--normal-font-size);
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        margin-top: 1rem;
+    }
+
+    button:hover {
+        background: var(--first-color-alt);
+    }
+
+    @media (max-width: 500px) {
+        .container {
+            margin: 40px auto;
+            padding: 24px 16px;
+            max-width: 90%;
+        }
+    }
+</style>
+
+<div class="container">
+    <h2>Inscription</h2>
+    <form id="registerForm" method="post" action="{% url 'register' %}" novalidate>
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="username">Nom d'utilisateur</label>
+            <input type="text" id="username" name="username" required>
+            <div class="error" id="usernameError"></div>
+        </div>
+        <div class="form-group">
+            <label for="email">Adresse Email</label>
+            <input type="email" id="email" name="email" required>
+            <div class="error" id="emailError"></div>
+        </div>
+        <div class="form-group">
+            <label for="password">Mot de passe</label>
+            <input type="password" id="password" name="password" required minlength="6">
+            <div class="error" id="passwordError"></div>
+        </div>
+        <button type="submit">S'inscrire</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        let valid = true;
+
+        // Reset errors
+        document.getElementById('usernameError').textContent = '';
+        document.getElementById('emailError').textContent = '';
+        document.getElementById('passwordError').textContent = '';
+
+        // Username validation
+        const username = document.getElementById('username').value.trim();
+        if (username.length < 3) {
+            document.getElementById('usernameError').textContent = "Le nom d'utilisateur doit contenir au moins 3 caractères.";
+            valid = false;
+        }
+
+        // Email validation
+        const email = document.getElementById('email').value.trim();
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(email)) {
+            document.getElementById('emailError').textContent = "Veuillez entrer une adresse email valide.";
+            valid = false;
+        }
+
+        // Password validation
+        const password = document.getElementById('password').value;
+        if (password.length < 6) {
+            document.getElementById('passwordError').textContent = "Le mot de passe doit contenir au moins 6 caractères.";
+            valid = false;
+        }
+
+        if (!valid) {
+            e.preventDefault();
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,631 @@
+<style>
+body {
+    font-family: 'Quicksand', sans-serif;
+    background: linear-gradient(135deg, #e6f7ff 0%, #e0f2e9 100%);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.cell {
+    position: absolute;
+    font-size: 1.5rem;
+    animation: float 15s infinite linear;
+    opacity: 0.3;
+    z-index: 0;
+}
+
+@keyframes float {
+    0% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+    25% {
+        transform: translate(100px, 50px) rotate(90deg);
+    }
+    50% {
+        transform: translate(50px, 100px) rotate(180deg);
+    }
+    75% {
+        transform: translate(-50px, 50px) rotate(270deg);
+    }
+    100% {
+        transform: translate(0, 0) rotate(360deg);
+    }
+}
+
+.option {
+    transition: all 0.3s ease;
+}
+
+.option:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.celebration {
+    position: absolute;
+    animation: celebrate 3s ease-out forwards;
+    opacity: 0;
+    z-index: 10;
+}
+
+@keyframes celebrate {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-100vh) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+.badge {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.progress-plant {
+    transition: all 0.5s ease;
+}
+</style>
+<div class="container mx-auto px-4 py-8 relative z-10">
+<!-- Écran d'accueil -->
+<div id="welcome-screen" class="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8 mb-8">
+    <h1 class="text-4xl font-bold text-center text-green-700 mb-6">Quiz de Biologie 🧬</h1>
+    <p class="text-lg text-center mb-8">Teste tes connaissances en biologie et deviens un biologiste junior !</p>
+    
+    <div class="flex flex-col space-y-4 mb-8">
+        <h2 class="text-xl font-semibold text-green-600">Choisis ton niveau :</h2>
+        <button id="level-1" class="level-btn bg-green-100 hover:bg-green-200 text-green-800 font-medium py-3 px-6 rounded-lg transition-all">
+            Niveau 1 (11-12 ans) 🌱
+        </button>
+        <button id="level-2" class="level-btn bg-green-200 hover:bg-green-300 text-green-800 font-medium py-3 px-6 rounded-lg transition-all">
+            Niveau 2 (13-14 ans) 🌿
+        </button>
+        <button id="level-3" class="level-btn bg-green-300 hover:bg-green-400 text-green-800 font-medium py-3 px-6 rounded-lg transition-all">
+            Niveau 3 (15-16 ans) 🌳
+        </button>
+    </div>
+    
+    <div class="text-center">
+        <p class="text-sm text-gray-500 mb-2">Réponds correctement pour faire pousser ta plante !</p>
+        <div class="flex justify-center space-x-4">
+            <div class="text-center">
+                <span class="text-2xl">🌱</span>
+                <p class="text-xs">Début</p>
+            </div>
+            <div class="text-center">
+                <span class="text-2xl">🌿</span>
+                <p class="text-xs">Progression</p>
+            </div>
+            <div class="text-center">
+                <span class="text-2xl">🌳</span>
+                <p class="text-xs">Maîtrise</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Écran de quiz -->
+<div id="quiz-screen" class="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8 mb-8 hidden">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h2 class="text-2xl font-bold text-green-700">Question <span id="question-number">1</span>/<span id="total-questions">5</span></h2>
+            <p id="level-display" class="text-sm text-green-600 font-medium"></p>
+        </div>
+        <div class="flex items-center">
+            <div id="progress-plant" class="text-4xl progress-plant">🌱</div>
+            <div class="ml-2">
+                <div class="text-sm font-medium text-green-700">Score: <span id="score">0</span></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="question-container" class="mb-6">
+        <h3 id="question-text" class="text-xl font-medium mb-4"></h3>
+        <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </div>
+    
+    <div id="feedback" class="p-4 rounded-lg mb-6 hidden"></div>
+    
+    <div class="flex justify-between">
+        <button id="prev-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-all hidden">
+            Précédent
+        </button>
+        <button id="next-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-all hidden">
+            Suivant
+        </button>
+    </div>
+</div>
+
+<!-- Écran de résultat -->
+<div id="result-screen" class="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8 text-center hidden">
+    <h2 class="text-3xl font-bold text-green-700 mb-4">Quiz terminé !</h2>
+    <p class="text-xl mb-6">Ton score final : <span id="final-score">0</span>/<span id="max-score">0</span></p>
+    
+    <div id="badge-container" class="mb-8">
+        <div class="badge inline-block bg-gradient-to-r from-green-400 to-blue-500 rounded-full p-8 shadow-lg">
+            <div class="text-5xl mb-2">🔬🧪🧬</div>
+            <div class="text-white font-bold text-xl">Biologiste Junior</div>
+        </div>
+    </div>
+    
+    <div id="celebration-container" class="fixed inset-0 pointer-events-none"></div>
+    
+    <p id="result-message" class="text-lg mb-8"></p>
+    
+    <div class="flex justify-center space-x-4">
+        <button id="restart-btn" class="bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-6 rounded-lg transition-all">
+            Recommencer
+        </button>
+        <button id="change-level-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-6 rounded-lg transition-all">
+            Changer de niveau
+        </button>
+    </div>
+</div>
+</div>
+
+<script>
+// Questions par niveau
+const quizData = {
+    level1: [
+        {
+            question: "Quelle est la principale fonction de la photosynthèse ? 🌱",
+            options: [
+                "Produire de l'oxygène et du glucose à partir de la lumière",
+                "Décomposer les aliments pour libérer de l'énergie",
+                "Transporter l'oxygène dans le corps",
+                "Éliminer les déchets du corps"
+            ],
+            correctAnswer: 0
+        },
+        {
+            question: "Quelle structure cellulaire contient l'ADN ? 🧬",
+            options: [
+                "Mitochondrie",
+                "Noyau",
+                "Chloroplaste",
+                "Membrane cellulaire"
+            ],
+            correctAnswer: 1
+        },
+        {
+            question: "Quel groupe d'animaux pond des œufs et allaite ses petits ? 🥚",
+            options: [
+                "Reptiles",
+                "Amphibiens",
+                "Mammifères monotrèmes",
+                "Oiseaux"
+            ],
+            correctAnswer: 2
+        },
+        {
+            question: "Quelle est la plus petite unité de vie ? 🦠",
+            options: [
+                "Organe",
+                "Tissu",
+                "Molécule",
+                "Cellule"
+            ],
+            correctAnswer: 3
+        },
+        {
+            question: "Quel gaz les plantes absorbent-elles pendant la photosynthèse ? 🌿",
+            options: [
+                "Dioxyde de carbone",
+                "Oxygène",
+                "Azote",
+                "Hydrogène"
+            ],
+            correctAnswer: 0
+        }
+    ],
+    level2: [
+        {
+            question: "Quelle organelle est responsable de la production d'énergie dans la cellule ? 🔋",
+            options: [
+                "Noyau",
+                "Mitochondrie",
+                "Ribosome",
+                "Appareil de Golgi"
+            ],
+            correctAnswer: 1
+        },
+        {
+            question: "Quel processus permet aux plantes de libérer de l'eau sous forme de vapeur ? 💧",
+            options: [
+                "Photosynthèse",
+                "Respiration",
+                "Transpiration",
+                "Condensation"
+            ],
+            correctAnswer: 2
+        },
+        {
+            question: "Comment appelle-t-on les unités de base de l'ADN ? 🧬",
+            options: [
+                "Nucléotides",
+                "Acides aminés",
+                "Glucides",
+                "Lipides"
+            ],
+            correctAnswer: 0
+        },
+        {
+            question: "Quelle est la fonction principale des globules rouges ? 🩸",
+            options: [
+                "Combattre les infections",
+                "Transporter l'oxygène",
+                "Produire des anticorps",
+                "Coaguler le sang"
+            ],
+            correctAnswer: 1
+        },
+        {
+            question: "Quel règne comprend les champignons ? 🍄",
+            options: [
+                "Plantae",
+                "Animalia",
+                "Fungi",
+                "Protista"
+            ],
+            correctAnswer: 2
+        }
+    ],
+    level3: [
+        {
+            question: "Quelle phase de la mitose implique la séparation des chromatides sœurs ? 🧫",
+            options: [
+                "Prophase",
+                "Métaphase",
+                "Anaphase",
+                "Télophase"
+            ],
+            correctAnswer: 2
+        },
+        {
+            question: "Quel type de liaison chimique implique le partage d'électrons ? ⚛️",
+            options: [
+                "Liaison ionique",
+                "Liaison covalente",
+                "Liaison hydrogène",
+                "Liaison métallique"
+            ],
+            correctAnswer: 1
+        },
+        {
+            question: "Quelle enzyme est responsable de la réplication de l'ADN ? 🧬",
+            options: [
+                "ADN polymérase",
+                "ARN polymérase",
+                "Ligase",
+                "Hélicase"
+            ],
+            correctAnswer: 0
+        },
+        {
+            question: "Quel processus métabolique produit le plus d'ATP ? ⚡",
+            options: [
+                "Glycolyse",
+                "Cycle de Krebs",
+                "Fermentation",
+                "Phosphorylation oxydative"
+            ],
+            correctAnswer: 3
+        },
+        {
+            question: "Quelle structure cellulaire est responsable de la synthèse des protéines ? 🧪",
+            options: [
+                "Mitochondrie",
+                "Lysosome",
+                "Ribosome",
+                "Appareil de Golgi"
+            ],
+            correctAnswer: 2
+        }
+    ]
+};
+
+// Variables globales
+let currentLevel = '';
+let currentQuestions = [];
+let currentQuestionIndex = 0;
+let score = 0;
+let plantStage = 0;
+const plantEmojis = ['🌱', '🌿', '🌳'];
+
+// Éléments DOM
+const welcomeScreen = document.getElementById('welcome-screen');
+const quizScreen = document.getElementById('quiz-screen');
+const resultScreen = document.getElementById('result-screen');
+const levelButtons = document.querySelectorAll('.level-btn');
+const questionNumber = document.getElementById('question-number');
+const totalQuestions = document.getElementById('total-questions');
+const levelDisplay = document.getElementById('level-display');
+const progressPlant = document.getElementById('progress-plant');
+const scoreDisplay = document.getElementById('score');
+const questionText = document.getElementById('question-text');
+const optionsContainer = document.getElementById('options-container');
+const feedback = document.getElementById('feedback');
+const prevBtn = document.getElementById('prev-btn');
+const nextBtn = document.getElementById('next-btn');
+const finalScore = document.getElementById('final-score');
+const maxScore = document.getElementById('max-score');
+const resultMessage = document.getElementById('result-message');
+const restartBtn = document.getElementById('restart-btn');
+const changeLevelBtn = document.getElementById('change-level-btn');
+const backgroundCells = document.getElementById('background-cells');
+const celebrationContainer = document.getElementById('celebration-container');
+
+// Créer les cellules flottantes en arrière-plan
+function createBackgroundCells() {
+    const cellEmojis = ['🦠', '🔬', '🧫', '🧬'];
+    const numCells = 15;
+    
+    backgroundCells.innerHTML = '';
+    
+    for (let i = 0; i < numCells; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.textContent = cellEmojis[Math.floor(Math.random() * cellEmojis.length)];
+        cell.style.left = `${Math.random() * 100}%`;
+        cell.style.top = `${Math.random() * 100}%`;
+        cell.style.animationDuration = `${15 + Math.random() * 20}s`;
+        cell.style.animationDelay = `${Math.random() * 5}s`;
+        backgroundCells.appendChild(cell);
+    }
+}
+
+// Initialiser le quiz
+function initQuiz() {
+    createBackgroundCells();
+    
+    // Ajouter les écouteurs d'événements pour les boutons de niveau
+    levelButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            currentLevel = button.id;
+            startQuiz();
+        });
+    });
+    
+    // Boutons de navigation
+    prevBtn.addEventListener('click', showPreviousQuestion);
+    nextBtn.addEventListener('click', showNextQuestion);
+    
+    // Boutons de résultat
+    restartBtn.addEventListener('click', () => {
+        startQuiz();
+    });
+    
+    changeLevelBtn.addEventListener('click', () => {
+        showWelcomeScreen();
+    });
+}
+
+// Démarrer le quiz
+function startQuiz() {
+    // Réinitialiser les variables
+    score = 0;
+    plantStage = 0;
+    currentQuestionIndex = 0;
+    
+    // Sélectionner les questions en fonction du niveau
+    switch(currentLevel) {
+        case 'level-1':
+            currentQuestions = quizData.level1;
+            levelDisplay.textContent = "Niveau 1 (11-12 ans)";
+            break;
+        case 'level-2':
+            currentQuestions = quizData.level2;
+            levelDisplay.textContent = "Niveau 2 (13-14 ans)";
+            break;
+        case 'level-3':
+            currentQuestions = quizData.level3;
+            levelDisplay.textContent = "Niveau 3 (15-16 ans)";
+            break;
+    }
+    
+    // Mettre à jour l'interface
+    totalQuestions.textContent = currentQuestions.length;
+    scoreDisplay.textContent = score;
+    progressPlant.textContent = plantEmojis[plantStage];
+    
+    // Afficher la première question
+    showQuestion(currentQuestionIndex);
+    
+    // Afficher l'écran de quiz
+    welcomeScreen.classList.add('hidden');
+    quizScreen.classList.remove('hidden');
+    resultScreen.classList.add('hidden');
+}
+
+// Afficher une question
+function showQuestion(index) {
+    const question = currentQuestions[index];
+    
+    // Mettre à jour le numéro de question
+    questionNumber.textContent = index + 1;
+    
+    // Afficher la question
+    questionText.textContent = question.question;
+    
+    // Afficher les options
+    optionsContainer.innerHTML = '';
+    question.options.forEach((option, i) => {
+        const optionElement = document.createElement('div');
+        optionElement.className = 'option bg-blue-50 hover:bg-blue-100 p-4 rounded-lg cursor-pointer border-2 border-transparent';
+        optionElement.textContent = option;
+        optionElement.dataset.index = i;
+        optionElement.addEventListener('click', selectOption);
+        optionsContainer.appendChild(optionElement);
+    });
+    
+    // Masquer le feedback
+    feedback.classList.add('hidden');
+    
+    // Gérer les boutons de navigation
+    prevBtn.classList.toggle('hidden', index === 0);
+    nextBtn.classList.add('hidden');
+}
+
+// Sélectionner une option
+function selectOption(e) {
+    const selectedOption = e.target;
+    const selectedIndex = parseInt(selectedOption.dataset.index);
+    const question = currentQuestions[currentQuestionIndex];
+    
+    // Réinitialiser toutes les options
+    const options = optionsContainer.querySelectorAll('.option');
+    options.forEach(option => {
+        option.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+        option.classList.add('bg-blue-50');
+    });
+    
+    // Vérifier si la réponse est correcte
+    const isCorrect = selectedIndex === question.correctAnswer;
+    
+    if (isCorrect) {
+        // Réponse correcte
+        selectedOption.classList.remove('bg-blue-50');
+        selectedOption.classList.add('bg-green-100', 'border-green-500');
+        feedback.textContent = "Bonne réponse ! 🎉";
+        feedback.classList.remove('hidden', 'bg-red-100', 'text-red-800');
+        feedback.classList.add('bg-green-100', 'text-green-800');
+        
+        // Mettre à jour le score
+        score++;
+        scoreDisplay.textContent = score;
+        
+        // Mettre à jour la plante
+        updatePlantProgress();
+    } else {
+        // Réponse incorrecte
+        selectedOption.classList.remove('bg-blue-50');
+        selectedOption.classList.add('bg-red-100', 'border-red-500');
+        
+        // Mettre en évidence la bonne réponse
+        options[question.correctAnswer].classList.remove('bg-blue-50');
+        options[question.correctAnswer].classList.add('bg-green-100', 'border-green-500');
+        
+        feedback.textContent = "Réponse incorrecte. Essaie encore !";
+        feedback.classList.remove('hidden', 'bg-green-100', 'text-green-800');
+        feedback.classList.add('bg-red-100', 'text-red-800');
+    }
+    
+    feedback.classList.remove('hidden');
+    
+    // Afficher le bouton suivant
+    nextBtn.classList.remove('hidden');
+}
+
+// Mettre à jour la progression de la plante
+function updatePlantProgress() {
+    const progressThreshold = Math.ceil(currentQuestions.length / 3);
+    
+    if (score >= progressThreshold * 2) {
+        plantStage = 2; // Arbre complet
+    } else if (score >= progressThreshold) {
+        plantStage = 1; // Plante moyenne
+    } else {
+        plantStage = 0; // Petite pousse
+    }
+    
+    progressPlant.textContent = plantEmojis[plantStage];
+    
+    // Animation de transition
+    progressPlant.classList.add('scale-125');
+    setTimeout(() => {
+        progressPlant.classList.remove('scale-125');
+    }, 300);
+}
+
+// Afficher la question précédente
+function showPreviousQuestion() {
+    if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        showQuestion(currentQuestionIndex);
+    }
+}
+
+// Afficher la question suivante
+function showNextQuestion() {
+    if (currentQuestionIndex < currentQuestions.length - 1) {
+        currentQuestionIndex++;
+        showQuestion(currentQuestionIndex);
+    } else {
+        showResults();
+    }
+}
+
+// Afficher les résultats
+function showResults() {
+    quizScreen.classList.add('hidden');
+    resultScreen.classList.remove('hidden');
+    
+    finalScore.textContent = score;
+    maxScore.textContent = currentQuestions.length;
+    
+    // Message personnalisé en fonction du score
+    const percentage = (score / currentQuestions.length) * 100;
+    
+    if (percentage >= 80) {
+        resultMessage.textContent = "Excellent travail ! Tu es un vrai biologiste en herbe ! 🧪";
+    } else if (percentage >= 60) {
+        resultMessage.textContent = "Bon travail ! Continue d'apprendre la biologie ! 🔬";
+    } else {
+        resultMessage.textContent = "Continue tes efforts ! La biologie est passionnante ! 🌱";
+    }
+    
+    // Célébration avec des feuilles flottantes
+    celebrateSuccess();
+}
+
+// Célébrer la réussite avec des feuilles flottantes
+function celebrateSuccess() {
+    const leafEmojis = ['🍃', '🌿', '🍀', '🌱', '🍂'];
+    const numLeaves = 30;
+    
+    celebrationContainer.innerHTML = '';
+    
+    for (let i = 0; i < numLeaves; i++) {
+        setTimeout(() => {
+            const leaf = document.createElement('div');
+            leaf.className = 'celebration text-2xl';
+            leaf.textContent = leafEmojis[Math.floor(Math.random() * leafEmojis.length)];
+            leaf.style.left = `${Math.random() * 100}%`;
+            leaf.style.top = '100%';
+            leaf.style.animationDelay = `${Math.random() * 0.5}s`;
+            celebrationContainer.appendChild(leaf);
+            
+            // Supprimer après l'animation
+            setTimeout(() => {
+                leaf.remove();
+            }, 3000);
+        }, i * 100);
+    }
+}
+
+// Afficher l'écran d'accueil
+function showWelcomeScreen() {
+    welcomeScreen.classList.remove('hidden');
+    quizScreen.classList.add('hidden');
+    resultScreen.classList.add('hidden');
+}
+
+// Initialiser le quiz au chargement
+document.addEventListener('DOMContentLoaded', initQuiz);
+</script>

@@ -1,0 +1,300 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css" as="style">
+    <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="preload" href="{% static 'css/styles.css' %}" as="style">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <title>{% block title %}Savoureux - Restaurant{% endblock %}</title>
+    <style>
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .user-dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: var(--body-color);
+            min-width: 200px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            z-index: 1000;
+            border-radius: 0.75rem;
+            margin-top: 0.5rem;
+            border: 1px solid rgba(var(--first-color-rgb), 0.1);
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .user-dropdown.show .user-dropdown-content {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .user-dropdown-toggle {
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .user-dropdown.show .user-dropdown-toggle {
+            background: rgba(var(--first-color-rgb), 0.1);
+        }
+
+        .user-dropdown-content a,
+        .user-dropdown-content form button {
+            color: var(--text-color);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .user-dropdown-content a:hover,
+        .user-dropdown-content form button:hover {
+            background-color: var(--first-color);
+            color: var(--body-color);
+        }
+
+        .user-dropdown-content a:first-child {
+            border-top-left-radius: 0.75rem;
+            border-top-right-radius: 0.75rem;
+        }
+
+        .user-dropdown-content form:last-child button {
+            border-bottom-left-radius: 0.75rem;
+            border-bottom-right-radius: 0.75rem;
+        }
+
+        .user-dropdown-content i {
+            margin-right: 8px;
+            font-size: 1.25rem;
+        }
+
+        .nav__cart {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: var(--first-color);
+            color: var(--body-color);
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 50%;
+            min-width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media screen and (max-width: 768px) {
+            .user-dropdown-content {
+                position: static;
+                box-shadow: none;
+                margin-top: 0.5rem;
+                border-radius: 0.75rem;
+                background: var(--body-color);
+                border: 1px solid rgba(var(--first-color-rgb), 0.1);
+            }
+
+            .user-dropdown.show .user-dropdown-content {
+                display: block;
+            }
+
+            .user-dropdown-content a,
+            .user-dropdown-content form button {
+                padding: 0.5rem 1rem;
+            }
+
+            .nav__cart {
+                display: inline-flex;
+                align-items: center;
+            }
+
+            .cart-count {
+                position: absolute;
+                top: -5px;
+                right: -5px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <a href="#" class="scrolltop" id="scroll-top">
+        <i class='bx bx-chevron-up scrolltop__icon'></i>
+    </a> 
+
+    <header class="l-header" id="header">
+        <nav class="nav bd-container">
+            <a href="{% url 'index' %}" class="nav__logo">Savoureux</a>
+            <div class="nav__menu" id="nav-menu">
+                <ul class="nav__list">
+                    <li class="nav__item"><a href="{% url 'index' %}" class="nav__link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">Accueil</a></li>
+                    <li class="nav__item"><a href="{% url 'menu' %}" class="nav__link {% if request.resolver_match.url_name == 'menu' %}active{% endif %}">Menu</a></li>
+                    <li class="nav__item"><a href="{% url 'make_reservation' %}" class="nav__link {% if request.resolver_match.url_name == 'make_reservation' %}active{% endif %}">Réserver</a></li>
+                    <li class="nav__item"><a href="{% url 'contact' %}" class="nav__link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}">Contact</a></li>
+                    {% if user.is_authenticated %}
+                        <li class="nav__item user-dropdown">
+                            <a href="#" class="nav__link user-dropdown-toggle">
+                                <i class='bx bx-user'></i>
+                                {{ user.username }}
+                                <i class='bx bx-chevron-down'></i>
+                            </a>
+                            <div class="user-dropdown-content">
+                                {% if user.is_staff %}
+                                <a href="{% url 'admin_dashboard' %}">
+                                    <i class='bx bxs-dashboard'></i>
+                                    Administration
+                                </a>
+                                {% endif %}
+                                <a href="{% url 'my_orders' %}">
+                                    <i class='bx bx-package'></i>
+                                    Mes commandes
+                                </a>
+                                <a href="{% url 'my_reservations' %}">
+                                    <i class='bx bx-calendar'></i>
+                                    Mes réservations
+                                </a>
+                                <form method="post" action="{% url 'logout' %}">
+                                    {% csrf_token %}
+                                    <button type="submit">
+                                        <i class='bx bx-log-out'></i>
+                                        Déconnexion
+                                    </button>
+                                </form>
+                            </div>
+                        </li>
+                        <li class="nav__item">
+                            <a href="{% url 'panier' %}" class="nav__link nav__cart">
+                                <i class='bx bx-cart'></i>
+                                <span class="cart-count">{{ request.user.cart.get_total_items }}</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="nav__item"><a href="{% url 'login' %}" class="nav__link">Connexion</a></li>
+                        <li class="nav__item"><a href="{% url 'register' %}" class="nav__link">Inscription</a></li>
+                    {% endif %}
+                    <li><i class='bx bx-moon change-theme' id="theme-button"></i></li>
+                </ul>
+            </div>
+            <div class="nav__toggle" id="nav-toggle">
+                <i class='bx bx-menu'></i>
+            </div>
+        </nav>
+    </header>
+
+    <main class="l-main">
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer class="footer section bd-container">
+        <div class="footer__container bd-grid">
+            <div class="footer__content">
+                <a href="#" class="footer__logo">Savoureux</a>
+                <span class="footer__description">Restaurant</span>
+                <div>
+                    <a href="#" class="footer__social"><i class='bx bxl-facebook'></i></a>
+                    <a href="#" class="footer__social"><i class='bx bxl-instagram'></i></a>
+                    <a href="#" class="footer__social"><i class='bx bxl-twitter'></i></a>
+                </div>
+            </div>
+
+            <div class="footer__content">
+                <h3 class="footer__title">Services</h3>
+                <ul>
+                    <li><a href="#" class="footer__link">Livraison</a></li>
+                    <li><a href="#" class="footer__link">Tarification</a></li>
+                    <li><a href="#" class="footer__link">Fast-food</a></li>
+                    <li><a href="#" class="footer__link">Réservation</a></li>
+                </ul>
+            </div>
+
+            <div class="footer__content">
+                <h3 class="footer__title">Information</h3>
+                <ul>
+                    <li><a href="{% url 'contact' %}" class="footer__link">Contact</a></li>
+                    <li><a href="{% url 'my_orders' %}" class="footer__link">Commandes</a></li>
+                    <li><a href="#" class="footer__link">Mentions légales</a></li>
+                    <li><a href="#" class="footer__link">CGV</a></li>
+                </ul>
+            </div>
+
+            <div class="footer__content">
+                <h3 class="footer__title">Adresse</h3>
+                <ul>
+                    <li>Yaounde  - Cameroun</li>
+                    <li>Damas Terre rouge</li>
+                    <li>+237 697-80-72-56</li>
+                    <li>contact@savoureux.cm</li>
+                </ul>
+            </div>
+        </div>
+
+        <p class="footer__copy">&#169; 2025 Savoureux. Tous droits réservés</p>
+    </footer>
+
+    <script src="{% static 'js/main.js' %}"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const userDropdown = document.querySelector('.user-dropdown');
+        const dropdownToggle = document.querySelector('.user-dropdown-toggle');
+
+        if (userDropdown && dropdownToggle) {
+            // Gérer le clic sur le toggle
+            dropdownToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                userDropdown.classList.toggle('show');
+            });
+
+            // Fermer le dropdown quand on clique en dehors
+            document.addEventListener('click', function(e) {
+                if (!userDropdown.contains(e.target)) {
+                    userDropdown.classList.remove('show');
+                }
+            });
+
+            // Empêcher la fermeture lors du clic dans le menu
+            userDropdown.querySelector('.user-dropdown-content').addEventListener('click', function(e) {
+                // Ne pas empêcher le comportement par défaut des liens et boutons
+                if (!e.target.closest('a') && !e.target.closest('button')) {
+                    e.stopPropagation();
+                }
+            });
+        }
+    });
+    </script>
+</body>
+</html> 
