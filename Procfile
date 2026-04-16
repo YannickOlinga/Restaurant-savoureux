@@ -1,1 +1,1 @@
-web: cd resto && gunicorn resto.resto.wsgi:application
+web: cd resto && gunicorn resto.wsgi:application
