@@ -3,7 +3,8 @@ from . import views
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
-    # URLs publiques
+
+    # URLs publique
     path('', views.index, name='index'),
     path('menu/', views.menu, name='menu'),
     path('panier/', views.panier, name='panier'),
