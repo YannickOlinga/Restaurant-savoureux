@@ -1,1 +1,1 @@
-web: gunicorn resto.wsgi:application
+web: gunicorn resto.resto.wsgi:application
